@@ -17,4 +17,4 @@ if (process.versions.electron) {
 const mainModule = path.resolve(__dirname, '../index.mjs');
 
 require('./polyfills');
-require('@std/esm')(module, esmOpts)(mainModule);
+require('esm')(module, esmOpts)(mainModule);

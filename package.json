@@ -21,7 +21,7 @@
   "private": true,
   "releaseMode": "interactive",
   "dependencies": {
-    "@std/esm": "0.x.x",
+    "esm": "^3.0.14",
     "node-fetch": "^2.0.0"
   },
   "devDependencies": {
