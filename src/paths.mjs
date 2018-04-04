@@ -3,4 +3,4 @@ import url from 'url';
 
 export const USER = process.env.HOME;
 
-export const dirname = path.resolve(path.dirname(url.parse(import.meta.url).pathname));
+export const dirname = decodeURI(path.resolve(path.dirname(url.parse(import.meta.url).pathname)));
