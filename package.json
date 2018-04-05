@@ -11,7 +11,7 @@
     "start": "npm run start-ui &> /dev/null & sleep 5; electron .",
     "start-ui": "cd src/ui/electron/view; npm start",
     "build-ui": "cd src/ui/electron/view; npm run build",
-    "test": "eslint ./src && jest -c ./src/__test__/__jest.config.ci.js",
+    "test": "eslint ./src && jest",
     "prepack": "npm test",
     "prestart-ui": "cd src/ui/electron/view; npm i --no-progress; rm -rf build"
   },
