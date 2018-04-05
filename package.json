@@ -12,6 +12,7 @@
     "start-ui": "cd src/ui/electron/view; npm start",
     "build-ui": "cd src/ui/electron/view; npm run build",
     "test": "eslint ./src && jest",
+    "postinstall": "npm run prestart-ui",
     "prepack": "npm test",
     "prestart-ui": "cd src/ui/electron/view; npm i --no-progress; rm -rf build"
   },
