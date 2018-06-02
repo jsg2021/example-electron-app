@@ -34,7 +34,7 @@
     "eslint-plugin-import": "^2.5.0",
     "eslint-plugin-react": "^7.0.0",
     "jest": "^22.2.2",
-    "jest-junit": "^4.0.0"
+    "jest-junit": "^5.0.0"
   },
   "jest": {
     "testEnvironment": "node",
