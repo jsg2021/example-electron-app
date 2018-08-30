@@ -19,8 +19,6 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "private": true,
-  "releaseMode": "interactive",
   "dependencies": {
     "esm": "^3.0.14",
     "node-fetch": "^2.0.0"
@@ -33,7 +31,7 @@
     "eslint": "^5.0.0",
     "eslint-plugin-import": "^2.5.0",
     "eslint-plugin-react": "^7.0.0",
-    "jest": "^22.2.2"
+    "jest": "^23.5.0"
   },
   "jest": {
     "testEnvironment": "node",
