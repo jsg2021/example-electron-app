@@ -1,0 +1,153 @@
+name: Build Artifacts
+
+on:
+  push:
+    # branches:
+    #   - master
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+env:
+  CI: true
+  APP_NAME: "Example Electron App"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        # os: [macOS-latest, windows-latest, ubuntu-latest]
+        os: [macOS-latest]
+        node-version: [12.x]
+
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: "Installing tools..."
+      run: npm i -g asar electron-packager --no-progress --registry=https://registry.npmjs.org
+
+    - name: "Installing mac tools..."
+      if: matrix.os == 'macOS-latest'
+      run: npm i -g create-dmg --registry=https://registry.npmjs.org
+
+    - name: "Installing app dependencies..."
+      run: npm ci --ignore-scripts --production --no-progress
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: "Installing view dependencies..."
+      shell: bash
+      run: |
+        cd src/ui/electron/view
+        npm ci --ignore-scripts --no-progress
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: 'Run dep install scripts...'
+      run: npm rebuild
+
+    - name: 'Build UI...'
+      shell: bash
+      run: |
+        cd src/ui/electron/view
+        npm rebuild
+        npm run build
+        rm -rf node_modules public src
+      env:
+        NODE_ENV: production
+
+    - name: "Packaging app.asar..."
+      shell: bash
+      run: |
+        asar pack --exclude-hidden --unpack-dir "**/{node_modules/@electron,node_modules/electron/dist,view/src,view/public}" . ./dist/app.asar
+        rm -rf ./dist/app.asar.unpacked
+
+    - name: "Package (mac)"
+      shell: bash
+      if: matrix.os == 'macOS-latest'
+      run: |
+        electron-packager ./dist "$APP_NAME" --prebuiltAsar ./dist/app.asar --out ./build/ --platform darwin
+        create-dmg "build/$APP_NAME-darwin-x64/$APP_NAME.app" build || true
+        rm -rf "./build/$APP_NAME-darwin-x64"
+        mv ./build/*.dmg ${APP_NAME// /.}-darwin-x64.dmg
+
+    - name: "Package (linux)"
+      shell: bash
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        electron-packager ./dist "$APP_NAME" --prebuiltAsar ./dist/app.asar --out ./build/ --platform linux
+        cd "./build/$APP_NAME-linux-x64"
+        tar -zcvf ../${APP_NAME// /.}-linux-x64.tar.gz .
+        cd ..
+        rm -rf "./$APP_NAME-linux-x64"
+
+    - name: "Package (windows)"
+      shell: powershell
+      if: matrix.os == 'windows-latest'
+      run: |
+        electron-packager .\dist "$Env:APP_NAME" --prebuiltAsar .\dist\app.asar --out .\build --platform win32
+        Compress-Archive -Path ".\build\$Env:APP_NAME-win32-x64" -DestinationPath ".\build\$($Env:APP_NAME.Replace(" ","."))-win32-x64.zip"
+        Remove-Item ".\build\$Env:APP_NAME-win32-x64" -Recurse
+
+    # - name: "Save Artifacts"
+    #   uses: actions/upload-artifact@master
+    #   with:
+    #     name: Dist Files
+    #     path: ./build
+
+    - name: "Create Release"
+      id: create_release
+      uses: actions/create-release@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: true
+
+    # compute the dotted filename for the release upload steps
+    - id: myvars
+      shell: bash
+      run: echo ::set-output name=FILE_NAME::${APP_NAME// /.}
+
+    - name: Upload Linux Release Asset
+      uses: actions/upload-release-asset@v1.0.1
+      if: matrix.os == 'ubuntu-latest'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: './build/${{ steps.myvars.outputs.FILE_NAME }}-linux-x64.tar.gz'
+        asset_name: '${{ steps.myvars.outputs.FILE_NAME }}-linux-x64.tar.gz'
+        asset_content_type: application/octet-stream
+
+    - name: Upload macOS Release Asset
+      uses: actions/upload-release-asset@v1.0.1
+      if: matrix.os == 'macOS-latest'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: './build/${{ steps.myvars.outputs.FILE_NAME }}-darwin-x64.dmg'
+        asset_name: '${{ steps.myvars.outputs.FILE_NAME }}-darwin-x64.dmg'
+        asset_content_type: application/octet-stream
+
+    - name: Upload Windows Release Asset
+      uses: actions/upload-release-asset@v1.0.1
+      if: matrix.os == 'windows-latest'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: './build/${{ steps.myvars.outputs.FILE_NAME }}-win32-x64.zip'
+        asset_name: '${{ steps.myvars.outputs.FILE_NAME }}-win32-x64.zip'
+        asset_content_type: application/zip
