@@ -7,7 +7,7 @@ async function start () {
 	try {
 		const {default: factory} = await moduleLoad;
 
-		factory();
+		await factory();
 	} catch (e) {
 		console.log('There was an error starting the UI:\n\n', e.stack);
 		process.exit(1);

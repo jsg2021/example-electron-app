@@ -1,0 +1,41 @@
+name: Project Health
+
+on:
+  schedule:
+    # every monday morning at 7:00am (central)
+    # https://crontab.guru/#0_13_*_*_1
+    - cron: "0 13 * * 1"
+
+  push:
+    branches:
+      - master
+    tags:
+      - "v[0-9]+*"
+
+  pull_request:
+    branches:
+      - master
+
+env:
+  CI: true
+
+jobs:
+  Verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone
+        uses: actions/checkout@v2
+
+      - name: setup nodejs
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+
+      - name: install dependencies
+        run: npm install
+
+      - name: test
+        run: npm test
+
+      - name: lint
+        run: npm run check --if-present

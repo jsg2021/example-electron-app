@@ -8,30 +8,30 @@
   },
   "main": "src/__bootstrap/index.js",
   "scripts": {
-    "start": "npm run start-ui &> /dev/null & sleep 5; electron .",
-    "start-ui": "cd src/ui/electron/view; npm start",
-    "build-ui": "cd src/ui/electron/view; npm run build",
-    "test": "eslint ./src && jest",
-    "postinstall": "npm run prestart-ui",
-    "prepack": "npm test",
-    "prestart-ui": "cd src/ui/electron/view; npm i --no-progress; rm -rf build"
+    "start": "concurrently \"npm run start-ui\" \"npm run start-host\"",
+    "start-host": "wait-on https://localhost:3000 && electron .",
+    "start-ui": "cd packages/electron-view; npm start",
+    "prebuild-ui": "rm -rf packages/electron-view/build",
+    "prestart-ui": "npm run prebuild-ui",
+    "build-ui": "cd packages/electron-view; npm run build",
+    "postinstall": "[ \"$NODE_ENV\" = production ] || lerna bootstrap --hoist",
+    "test": "eslint ./src --fix && jest",
+    "prepack": "npm test"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "esm": "^3.0.14",
-    "node-fetch": "^2.0.0"
+    "electron": "^9.1.2",
+    "esm": "^3.2.25",
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
-    "babel-eslint": "^10.0.0",
+    "concurrently": "^5.2.0",
     "devtron": "^1.4.0",
-    "electron": "^9.0.0",
-    "electron-packager": "^15.0.0",
-    "eslint": "^7.2.0",
-    "eslint-plugin-import": "^2.5.0",
-    "eslint-plugin-react": "^7.0.0",
-    "jest": "^26.0.1"
+    "jest": "^26.2.2",
+    "lerna": "^3.22.1",
+    "wait-on": "^5.1.0"
   },
   "jest": {
     "testEnvironment": "node",

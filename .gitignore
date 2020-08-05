@@ -1,8 +1,6 @@
 /build
 /dist
 /reports
-/app.asar
-/app.asar*
-/src/ui/electron/view/build
+/packages/electron-view/build
 .esm-cache
 node_modules
