@@ -30,7 +30,7 @@
     "concurrently": "^6.0.0",
     "devtron": "^1.4.0",
     "jest": "^26.2.2",
-    "lerna": "^3.22.1",
+    "lerna": "^4.0.0",
     "wait-on": "^5.1.0"
   },
   "jest": {
